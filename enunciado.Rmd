@@ -1,0 +1,1038 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+ ---
+title: 'Jogos Olímpicos de Verão'
+author: 'Júlia Miranda Rodrigues'
+date: '(v. `r format(Sys.Date(), "%d/%m/%Y")`)'
+lang: 'pt'
+output: rmdformat::fnaufel_rmd_format
+# To install this format, enter
+#   install.packages("devtools")
+#   devtools::install_github("fnaufel/rmdformat")
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+
+opts_chunk$set(
+  echo = TRUE, 
+  # collapse = TRUE,
+  # cache = TRUE,
+  out.width = "90%",
+  fig.align = 'center',
+  fig.width = 7,
+  fig.show = "hold"
+)
+
+# Supress crayon output
+options(crayon.enabled = FALSE)
+
+options(
+  # Avoid scientific notation
+  scipen = 15,
+  # Use a comma as decimal separator
+  OutDec = ',',
+  # Number of decimal digits for numbers produced by inline R code
+  fmdigits = 2
+)
+
+# Useful libraries
+library(kableExtra)
+options(knitr.kable.NA = '')
+
+# For nice dataframe summaries
+library(summarytools)
+st_options(
+  plain.ascii = FALSE,
+  dfSummary.style = 'grid',
+  dfSummary.varnumbers = FALSE,
+  dfSummary.valid.col = FALSE,
+  dfSummary.graph.col = is_html_output(),
+  headings = FALSE,
+  dfSummary.graph.magnif = 1,
+  # tmp.img.dir = 'dsimg',
+  lang = 'pt',
+  subtitle.emphasis = FALSE
+)
+
+# Tidy!
+library(tidyverse)
+library(scales)
+
+# Useful functions provided by the rmdformat package
+# 
+# Execute 
+# 
+#   cat(system.file("rmarkdown/resources/common.R", package = "rmdformat"))
+# 
+# to see the location of the file
+source(
+  system.file(
+    "rmarkdown/resources/common.R",
+    package = "rmdformat"
+  )
+)
+
+# Carregar dados da atividade
+library(Olimpiadas)
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+
+::: {.rmdimportant latex=1}
+
+[**INSTRUÇÕES**]{.hl}
+
+* Fique à vontade para consultar os coleguinhas, mas não copie as respostas deles. Se eu achar que você copiou, vamos ter uma entrevista síncrona, por vídeo, com horas de duração, para que eu tenha certeza de que você sabe o que fez.
+
+* Entregue [(via Moodle) este arquivo .Rmd]{.hl} com suas respostas. Não esqueça de colocar o seu nome no campo `author`, no início do arquivo.
+
+* Além do arquivo .Rmd, entregue também [(via Moodle)]{.hl} um arquivo contendo um vídeo de no máximo 5 minutos onde você explica em detalhes a resolução de uma das suas questões.
+
+* Todos os gráficos devem ser feitos com o pacote `ggplot2`.
+
+* Todos os gráficos devem incluir títulos, rótulos, legendas (quando necessárias), e outros elementos para facilitar a compreensão. Imagine que seus gráficos serão publicados em uma revista.
+
+* Trate o texto e o código com o mesmo cuidado. Use parágrafos no texto e indentação e quebras de linha no código. [A legibilidade do texto e do código também fazem parte da apresentação.]{.hl}
+
+* Bom trabalho.
+
+:::
+
+
+# Sumário
+
+
+Nesta atividade, você vai trabalhar com o conjunto de dados `atletas`.
+
+1. Entre `?atletas` para ver a documentação.
+    ```{r}
+    # ?atletas
+    ```
+
+1. Use `glimpse(atletas)` para ver a estrutura da *tibble*.
+    ```{r}
+    glimpse(atletas)
+    ```
+
+1. Use a função `dfSummary`, do pacote `summaryTools`, para ver um sumário mais detalhado da *tibble*.
+
+    ```{r}
+    dfSummary(atletas)
+    ```
+
+# Idades e esportes
+
+Nesta seção, você vai explorar os dados, mas sem gerar gráficos.
+
+
+1. Qual a idade dos atletas mais jovens? Quem são? De onde são? Em que ano competiram? Em que esportes? Ganharam medalha? Use a função `slice_min`.
+
+    Utilizando a função `slice_min` serão selecionadas as linhas contendo os atletas mais jovens,
+    isto é, aqueles que possuem o menor valor de idade. Esse resultado será armazenado em `menor_idade`.
+
+    ```{r}
+    menor_idade <- atletas %>% slice_min(idade)
+    
+    menor_idade %>% distinct(idade) %>% pull(idade)
+    ```
+
+    Possuindo agora as linhas referentes aos atletas de menor idade observa-se que a idade dos atletas mais jovens é **11 anos**.
+    
+    Dos atletas mais jovens temos: **Carlos Bienvenido Front Barrera** e **Liana Vicens**, como mostra na coluna de nomes abaixo.
+  
+    ```{r}
+    nomes_atletas_mais_jovens <- menor_idade  %>% distinct(nome)
+
+    nomes_atletas_mais_jovens 
+    ```
+
+    Ainda sobre os atletas mais jovens, temos que **Carlos Bienvenido Front Barrera** é da **Espanha(ESP)** e **Liana Vicens** é de **Porto Rico(PUR)**, como pode ser observado abaixo.
+    
+    ```{r}
+    origem_atletas_mais_jovens <- menor_idade %>% select(nome,pais) %>% distinct(nome, .keep_all = TRUE)
+    
+    origem_atletas_mais_jovens
+    ```
+    
+    **Carlos Bienvenido Front Barrera** competiu em  **1992** e **Liana Vicens** em  **1968**, como pode ser observado abaixo.
+    
+    ```{r}
+    ano_atletas_mais_jovens <- menor_idade %>% select(nome,ano) %>% distinct(nome, .keep_all = TRUE)
+    
+    ano_atletas_mais_jovens
+    ```
+    
+    **Carlos Bienvenido Front Barrera** competiu no esporte de **remo** e **Liana Vicens** na **natação**, como pode ser observado abaixo.
+    
+    ```{r}
+    esporte_atletas_mais_jovens <- menor_idade %>% select(nome,esporte) %>% distinct(nome, .keep_all=TRUE)
+    
+    esporte_atletas_mais_jovens
+    ```
+
+    Nem **Carlos Bienvenido Front Barrera**, nem **Liana Vicens**  ganharam medalhas nos eventos que participaram, como pode ser observado abaixo.
+    
+    ```{r}
+    esporte_atletas_mais_jovens <- menor_idade %>% select(nome,medalha, evento)
+    
+    esporte_atletas_mais_jovens
+    ```
+
+
+1. Qual a idade dos atletas mais velhos? Quem são? De onde são? Em que ano competiram? Em que esportes? Ganharam medalha? Use a função `slice_max`.
+
+    Utilizando a função `slice_max` serão selecionadas as linhas contendo os atletas mais velhos,
+    isto é, aqueles que possuem o maior valor de idade. Esse resultado será armazenado em `maior_idade`.
+    
+    ```{r}
+    maior_idade <- atletas %>% slice_max(idade)
+    maior_idade %>% pull(idade)
+    ```
+    
+    Possuindo agora as linhas referentes aos atletas de maior idade observa-se que a idade dos atletas mais velhos é **84 anos**.
+    O atleta mais velho é **George Denholm Armour**, como mostra na coluna de nomes abaixo.
+    
+    ```{r}
+    nomes_atletas_mais_velhos <- maior_idade %>% select(nome)
+    
+    nomes_atletas_mais_velhos
+    ```
+
+    Ainda sobre o atleta mais velho, temos que **George Denholm Armour** é do **Reino Unido(GBR)**, como pode ser observado abaixo.
+    
+    ```{r}
+    origem_atletas_mais_velhos <- maior_idade %>% select(nome,pais) 
+    
+    origem_atletas_mais_velhos 
+    ```
+
+    **George Denholm Armour** competiu em  **1948**, como pode ser observado abaixo.
+    
+    ```{r}
+    ano_atletas_mais_velhos <- maior_idade %>% select(nome,ano)
+    
+    ano_atletas_mais_velhos
+    ```
+
+    Ele participou da  **Competição de Arte**, como pode ser observado abaixo.
+    
+    ```{r}
+    esporte_atletas_mais_velhos <- maior_idade %>% select(nome,esporte) 
+    
+    esporte_atletas_mais_velhos
+    ```
+
+    **George Denholm Armour** não ganhou medalha alguma na Competição de Arte, como pode ser observado abaixo.
+    
+    ```{r}
+    esporte_atletas_mais_velhos_medalha <- maior_idade %>% 
+                                   select(nome,medalha)
+    esporte_atletas_mais_velhos_medalha
+    ```
+
+1. Aposto que você não sabia que havia competição de artes nas Olimpíadas! Até que ano isto aconteceu?
+
+    A competição de artes teve seu último ano de ocorrência nas Olimpíadas em **1948**, como pode observar abaixo.
+    
+    Primeiro, seleciona-se as colunas *ano* e *esporte* e, após isso, filtra-se para que tenhamos colunas que contenham
+    somente o esporte *Art Competitions*. 
+    
+    De certo, o último ano em que ocorreu essa competição corresponde ao 
+    maior valor de ano que é encontrado pela função `slice_max`, como observado abaixo.
+    
+    ```{r}
+    anos_que_ocorreram_competicao <- atletas %>% select(ano, esporte) %>% filter(esporte == 'Art Competitions')
+    
+    ultimo_ano_que_ocorreu_competicao_de_arte <- anos_que_ocorreram_competicao %>% slice_max(ano) %>% distinct() %>% pull(ano)
+    
+    ultimo_ano_que_ocorreu_competicao_de_arte
+    ```
+
+
+1. Quais eram os eventos das competições de artes? Use a função `distinct`.
+
+    Os eventos das competições de artes eram:
+      * Art Competitions Mixed Sculpturing, Unknown Event				
+      * Art Competitions Mixed Painting, Unknown Event				
+      * Art Competitions Mixed Architecture, Unknown Event				
+      * Art Competitions Mixed Literature, Lyric Works				   
+      * Art Competitions Mixed Painting, Applied Arts				  
+      * Art Competitions Mixed Painting, Graphic Arts				  
+      * Art Competitions Mixed Music, Compositions For Orchestra				   
+      * Art Competitions Mixed Sculpturing, Statues				
+      * Art Competitions Mixed Painting, Paintings				
+      * Art Competitions Mixed Literature, Unknown Event
+      * Art Competitions Mixed Music, Vocals				
+      * Art Competitions Mixed Literature, Dramatic Works				
+      * Art Competitions Mixed Sculpturing, Medals And Plaques				
+      * Art Competitions Mixed Architecture, Architectural Designs				
+      * Art Competitions Mixed Literature, Epic Works				
+      * Art Competitions Mixed Music, Instrumental And Chamber				
+      * Art Competitions Mixed Sculpturing, Reliefs				
+      * Art Competitions Mixed Architecture, Designs For Town Planning
+      
+    Os eventos das competições de artes podem ser observados na variável `eventos_da_competicao_de_arte`
+    
+    ```{r}
+    eventos_da_competicao_de_arte <- atletas %>% filter(esporte == 'Art Competitions') %>% select(evento) %>% distinct(evento)
+    ```
+
+1. Elimine do *data frame* as linhas relativas a artes:
+
+    ```{r}
+    atletas_sem_arte <- atletas %>% filter(esporte != 'Art Competitions')  
+    ```
+
+1. Quais as idades mínima e máxima agora?
+
+    A idade mínima continua sendo 11 anos, como observado abaixo.
+
+    ```{r}
+    idade_minima <- atletas_sem_arte %>% select(idade) %>% slice_min(idade) %>% distinct()
+    idade_minima %>% pull(idade)
+    
+    ```
+
+    Já a idade máxima, sem a Competição de Arte, agora é 71 anos, como observado abaixo.
+
+    ```{r}
+    idade_maxima <- atletas_sem_arte %>% select(idade) %>% slice_max(idade) %>% distinct()
+    idade_maxima %>% pull(idade)
+    ```
+
+
+1. Quais os dados dos atletas que têm a idade máxima?
+
+    Os dados do atleta que têm a idade máxima são mostrados na tibble abaixo:
+    
+    ```{r}
+    atletas_idade_maxima <- atletas_sem_arte %>% slice_max(idade)
+    atletas_idade_maxima
+    ```
+
+1. Quais os atletas mais jovens a ganhar medalha? De onde são? Em que anos ganharam? Em que esportes? Quais medalhas?
+
+    Para encontrar os atletas mais jovens a ganhar medalha, é necessário filtrar o conteúdo da coluna medalha na qual essa tenha
+    algum dos valores possíveis de medalha e eliminar aqueles que não ganharam medalha alguma.
+    
+    ```{r}
+    atletas_com_medalhas <- atletas_sem_arte %>% filter(!is.na(medalha))
+    ```
+
+    Os atletas mais jovens a ganharem medalha foram:
+    
+    * Robin Marie Corsiglia (-Scholefield)				
+    * Donna Elizabeth de Varona (-Pinto)				
+    * Kornelia Ender (-Matthes, -Grummt)				
+    * Fu Mingxia				
+    * Gina Elena Gogean (-Groza)				
+    * Nian Yun				
+    * Klaus Zerta
+    
+    e podem ser observados pela tibble *atletas_com_medalhas_mais_novos*.
+    
+    ```{r}
+    atletas_com_medalhas_mais_novos <- atletas_com_medalhas %>% slice_min(idade)
+    ```
+
+    Referente a origem de cada atleta dentre os mais jovens temos:
+    
+    * Robin Marie Corsiglia (-Scholefield) é do **Canadá(CAN)**				
+    * Donna Elizabeth de Varona (-Pinto) é dos **Estados Unidos(USA)**			
+    * Kornelia Ender (-Matthes, -Grummt) e Klaus Zerta são da **Alemanha(GDR, GER)**
+    * Fu Mingxia e Nian Yun são da **China(CHN)**				
+    * Gina Elena Gogean (-Groza) é da **Romênia(ROU)**			
+    
+    e podem ser observados pela tibble *origem_jovens_medalhas*.
+    
+    ```{r}
+    origem_jovens_medalhas <- atletas_com_medalhas_mais_novos %>% select(nome, pais) %>% distinct()
+    ```
+
+    Sobre o ano que ganharam medalhas:
+    
+    * Robin Marie Corsiglia (-Scholefield) ganhou em **1976**				
+    * Donna Elizabeth de Varona (-Pinto) e Klaus Zerta ganharam em **1960**			
+    * Kornelia Ender (-Matthes, -Grummt) ganhou em **1976**				
+    * Fu Mingxia e Gina Elena Gogean (-Groza) ganharam em **1992**				
+    * Nian Yun ganhou em **1996**				
+    
+    e podem ser observados pela tibble *ano_jovens_medalhas*.
+    
+    ```{r}
+    ano_jovens_medalhas <- atletas_com_medalhas_mais_novos %>% select(nome, ano) %>% distinct() %>% arrange(ano)
+    ```
+
+    Sobre os esportes que ganharam medalhas:
+    
+    * Robin Marie Corsiglia (-Scholefield), Donna Elizabeth de Varona (-Pinto), Kornelia Ender (-Matthes, -Grummt) e Nian Yun ganharam na **natação**				
+    * Fu Mingxia venceu no **mergulho**				
+    * Gina Elena Gogean (-Groza) ganhou medalha na **ginástica**				
+    * Klaus Zerta ganhou no **remo**
+    
+    e podem ser observados pela tibble *esporte_jovens_medalhas*.
+    
+    ```{r}
+    esporte_jovens_medalhas <- atletas_com_medalhas_mais_novos %>% select(nome, esporte) %>% distinct() %>% arrange(esporte)
+    ```
+
+    Sobre as medalhas que cada atleta mais jovem ganhou temos que:
+    
+    * Robin Marie Corsiglia (-Scholefield) ganhou **medalha de bronze**
+    * Donna Elizabeth de Varona (-Pinto), Fu Mingxia e Klaus Zerta ganharam **medalha de ouro**
+    * Kornelia Ender (-Matthes, -Grummt), Nian Yun e Gina Elena Gogean (-Groza) ganharam **medalha de prata**
+    
+    e podem ser observados pela tibble *medalhas_jovens_medalhas*.
+    
+    ```{r}
+    medalhas_jovens_medalhas <- atletas_com_medalhas_mais_novos %>% select(nome, medalha) %>% distinct() %>% arrange(medalha)
+    ```
+
+1. Quais os atletas mais velhos a ganhar medalha? De onde são? Em que anos ganharam? Em que esportes? Quais medalhas?
+
+    Utilizando a tibble `maior_idades`(Aqui é dos mais novos ou a partir de qual ganhou medalha)
+    
+    Para encontrar os atletas mais velhos a ganharem medalha, é necessário filtrar o conteúdo da coluna medalha na qual essa tenha algum dos valores possíveis de medalha e     eliminar aqueles que não ganharam medalha alguma.
+    
+    ```{r}
+    atletas_com_medalhas <- atletas_sem_arte %>% filter(!is.na(medalha))
+    ```
+
+    O atleta mais velho a ganhar medalha foi Louis Noverraz, como observado abaixo.
+    
+    ```{r}
+    atletas_com_medalhas_mais_velhos <- atletas_com_medalhas %>% slice_max(idade)
+    atletas_com_medalhas_mais_velhos %>% pull(nome)
+    ```
+
+    Louis Noverraz é da **Suíça(SUI)**.		
+    
+    ```{r}
+    pais <- atletas_com_medalhas_mais_velhos %>% select(nome, pais) %>% distinct()
+    pais %>% pull(pais)
+    ```
+
+     Louis Noverraz ganhou em **1948**, como observado abaixo.
+    
+    ```{r}
+    ano <- atletas_com_medalhas_mais_velhos %>% select(nome, ano) %>% distinct()
+    ano %>% pull(ano)
+    ```
+
+     Louis Noverraz ganhou medalha na **Vela**, como observado abaixo.
+    
+    ```{r}
+    esporte_medalhas <- atletas_com_medalhas_mais_velhos %>% select(nome, esporte, medalha)
+
+    esporte_medalhas %>% pull(esporte)
+    ```
+    Na vela, Louis Noverraz ganhou **prata**, como observado abaixo.
+    
+    ```{r}
+    esporte_medalhas %>% pull(medalha)
+    ```
+
+
+# *Scatterplots*
+
+
+1. Usando `group_by` e `summarize`, crie o *data frame* `medalhas_atletas` com as colunas `pais`, `ano`, `atletas` (total de participações do país naquele ano) e `medalhas` (total de medalhas do país naquele ano). Descarte os registros onde o número de medalhas é menor que $50$.
+
+    ```{r}
+    medalhas_atletas <- atletas %>% 
+                                group_by(pais,ano) %>% 
+                                summarize(
+                                          atletas = n(),                  # quantidade total de atletas que competiram pelo país naquele anos
+                                          medalhas = sum(!is.na(medalha)) # quantidade total de medalhas que o país ganhou naquele ano
+                                          ) %>%
+                                filter(!medalhas < 50)                    # descartando registros com número de medalhas menor que 50
+    medalhas_atletas
+    ```
+
+1. Gere um *scatterplot* de número de medalhas por número de participações. Use `geom_smooth` para traçar uma reta de regressão. Comente o resultado.
+
+    ```{r}
+    disp_medalhas <- medalhas_atletas %>% 
+      
+                      ggplot(aes(x = medalhas, y =atletas))                        +
+                      geom_point(aes(color=pais))                                              +
+                      geom_smooth(method = 'lm', formula = 'y ~ x', se = FALSE) + 
+                      scale_y_continuous(breaks=seq(0, 839, 100)) +
+      
+                      labs(
+                        title = 'Número de medalhas por número de participantes',
+                        y = 'Atletas',
+                        x = 'Medalhas'
+                      ) +
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5),
+                             legend.key.size = unit(0.1, "cm"))
+    disp_medalhas
+    ```
+
+
+    Observa-se no gráfico gerado acima uma correlação entre a quantidade de atletas participantes e a quantidade de medalhas ganhas para a maioria dos país individualmente. 
+    Porém, se comparados os valores entre países, sem considerar os anos, nem sempre a quantidade de atletas tem correlação em ganhar mais medalhas. Tem-se por exemplo os **Estados Unidos(USA)** que enviou **mais de 800** atletas para olimpíada e ganhou menos medalhas que a **Rússia(URS)**, que enviou menos que 700 atletas.
+
+1. Facete o *scatterplot* anterior por ano. Disponha os subgráficos em $3$ linhas e $6$ colunas.
+    ```{r}
+    disp_medalhas +
+                  facet_wrap(~ano, nrow = 3, ncol = 6) +
+                  labs(
+                    title = 'Número de medalhas e participantes por ano',
+                    y = 'Atletas',
+                    x = 'Medalhas'
+                  ) +
+                  theme( panel.spacing = unit(0.5, "cm"),
+                         plot.title = element_text (hjust = 0.5)
+                  )
+
+    ```
+
+1. Como você interpreta as diferentes quantidades de pontos em cada subgráfico?
+
+    Ao observar as facetas do gráfico, constata-se que as diferentes quantidades de pontos se dão pelo fato de existirem anos que nem todos os países ganharam mais que **50** medalhas.
+
+1. Houve uma única vez em que um país ganhou mais de $400$ medalhas em um ano. Descubra o que aconteceu para facilitar essa ocorrência.
+
+    O único país que ganhou mais de 400 medalhas em um ano foi a **Rússia** no ano de **1980**. Observa-se no subgráfico desse ano que, em comparação com os demais, o país teve a maior quantidade de participantes na Olimpíada deste ano.
+    
+1. [Considere agora apenas os registros onde `medalhas` é maior que $200$.]{.hl} Faça um *scatterplot* de número de medalhas por número de participações, onde cada ponto é colorido de acordo com o país. Aumente o tamanho de todos os pontos para facilitar a leitura. [Não]{.hl} gere a reta de regressão. Comente o resultado.
+
+    ```{r}
+    disp_medalhas_mais_200 <- medalhas_atletas %>% 
+                      filter(medalhas>200) %>%
+      
+                      ggplot(aes(x = medalhas, atletas)) +
+                      geom_point(aes(color=pais, size=2))+
+                      facet_wrap(~ano, nrow = 3, ncol = 6) +
+      
+                      labs(
+                      title = 'Número de medalhas e participantes por ano',
+                      y = 'Atletas',
+                      x = 'Medalhas'
+                      )+
+                      scale_x_continuous(breaks = seq(200, 450, 100)) +
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5)
+                             )
+    disp_medalhas_mais_200
+    ```
+
+   Observa-se que em 12 Olimpíadas os únicos países ganharem mais de 200 medalhas foram:
+        
+    * **Alemanha(GDR)** que ganhou mais de 200 medalhas somente no ano de **1980**
+    * **Rússia(URS)** manteve-se acima de 200 medalhas em **1972, 1976, 1980, 1988** e pela **EUN** ganhou mais de 200 medalhas no ano de **1992**
+    * **Estados Unidos(USA)** começa a ganhar mais de 200 medalhas em **1984** continuando nos anos apresentados acimas como único a conseguir mais de 200 medalhas.
+        
+   Observa-se, ainda, que a **Rússia** e os *Estados Unidos* foram os que mais ganharam medalhas e os que mais tiveram participantes nesses anos em comparação com os outros países.
+
+# Histogramas
+
+1. Usando o *data frame* `atletas` [(sem as artes)]{.hl}, gere um histograma das idades de todos os atletas, com classes de $5$ anos de largura.
+
+    ```{r}
+    
+    hist_idade <- atletas_sem_arte %>%
+                      ggplot(aes(x = idade))                  +
+                      geom_histogram(
+                                    fill="white",
+                                    color="blue",
+                                    breaks=seq(0, 75, 5), 
+                                    na.rm = TRUE
+                                    )       + 
+                      scale_x_continuous(breaks=seq(0, 75, 5)) +
+                      scale_y_continuous(breaks=seq(0, 75000, 5000)) +
+      
+                      labs(
+                      title = 'Idades dos atletas',
+                      y = 'Quantidade',
+                      x = 'Idade'
+                      ) +
+                      theme_dark() +
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5))
+    hist_idade
+    ```
+
+
+1. Faça a mesma coisa, mas apenas para idades maiores ou iguais a $55$ anos.
+
+    ```{r}
+    hist_idade_55 <- atletas_sem_arte %>%  
+                      filter(idade>=55) %>%
+                      ggplot(aes(x = idade))                  +
+                      geom_histogram(
+                                    fill="white",
+                                    color="blue",
+                                    breaks=seq(55, 75, 5)
+                                    )       + 
+                      scale_x_continuous(breaks=seq(55, 75, 5)) +
+                      labs(
+                      title = 'Idades dos atletas maiores ou iguais a 55',
+                      y = 'Quantidade',
+                      x = 'Idade'
+                      ) +
+                      theme_dark() + 
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5))
+    hist_idade_55
+       
+    ```
+
+
+1. Gere dois histogramas [de todas as idades]{.hl}, [por sexo]{.hl}, com classes de $5$ anos de largura. Use `facet_wrap`.
+
+    ```{r}
+    hist_idade_x_sexo <- atletas_sem_arte  %>% 
+                      filter(!is.na(idade)) %>% 
+                      ggplot(aes(x = idade, fill=sexo))                  +
+                      geom_histogram(
+                                    color="black",
+                                    breaks=seq(10, 70, 5)
+                                    )       + 
+                      scale_x_continuous(breaks=seq(10, 70, 5)) +
+                      facet_wrap(~sexo) +
+                      labs(
+                      title = 'Idades dos atletas por sexo',
+                      y = 'Quantidade',
+                      x = 'Idade'
+                      )+ 
+                      theme_dark() +
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5))
+    
+    hist_idade_x_sexo
+    ```
+
+1. Comente o resultado, sobretudo nas idades abaixo de $20$ anos. Por que você acha que acontece isso? Analise os dados como você achar mais adequado para confirmar ou refutar sua hipótese.
+
+    Para melhor analizar resultados específicos cria-se um data frame a partir do histograma `hist_idade_x_sexo`, `db`.
+    
+    ```{r}
+    df <-  ggplot_build(hist_idade_x_sexo)$data[[1]] %>% 
+           select(group,xmin,xmax,y) %>% 
+           arrange(xmin) %>%
+           rename("sexo"="group")
+    
+    df[df == 1] <- 'F'
+    df[df == 2] <- 'M'
+    
+    df 
+    ```
+    
+    Nota-se que dentre os menores de 15 anos, a quantidade de participantes do sexo feminino é mais que o triplo do sexo masculino. Já para as idades maiores que 15 até 20 anos, a quantidade de participantes do sexo maculino ultrapassa as participantes do sexo feminino dessa faixa etária. E os atletas mais velhos mantem-se majoritariamente do sexo masculino.
+    Tal fato acontece devido a uma maior participação de homens nas Olimpíadas que de mulheres, veja a tibble `atletas_por_sexo` abaixo com a quantidade total de homens e de mulheres em todos os anos tabelados (1948 a 2016).
+    
+    ```{r}
+    
+    atletas_por_sexo <- atletas %>%
+                        distinct(nome, .keep_all=TRUE) %>% 
+                        select(sexo) %>% 
+                        group_by(sexo) %>% 
+                        summarize(
+                          Total = n()
+                        )
+    
+  atletas_por_sexo
+	
+    ```
+    
+    Assim, vê-se que a quantidade de participantes do sexo masculino é mais que o dobro da quantidade de participantes mulheres.
+    
+1. Quais são os esportes com a menor idade [média]{.hl} e a maior idade [média]{.hl}? Use `group_by` e `summarize`. Ignore os valores `NA` na hora de computar a média (veja a ajuda da função `mean`).
+    
+    O **esporte de menor idade[média]** é a **Ginástica Rítmica** e o esporte de **maior idade[média]** é **Hipismo**.
+    
+    ```{r}
+    atletas_idade_media <- atletas_sem_arte %>%  
+                           group_by(esporte) %>% 
+                                summarize(
+                                          media = mean(idade, na.rm = TRUE)
+                                          )
+
+    menor_idade_media <-  atletas_idade_media %>% slice_min(media) %>% pull(esporte)
+    
+    maior_idade_media <-  atletas_idade_media %>% slice_max(media) %>% pull(esporte)
+    
+    sprintf("%s é o esporte de menor idade(média).E %s é o esporte de maior idade(média)", menor_idade_media, maior_idade_media)
+    ```
+
+1. Quais são os esportes com a menor idade [mediana]{.hl} e a maior idade [mediana]{.hl}? Use `group_by` e `summarize`. Ignore os valores `NA` na hora de computar a mediana (veja a ajuda da função `median`).
+
+    O **esporte de maior idade[mediana]** é o **Hipismo** e o esporte de **menor idade[mediana]** é **Ginástica Rítmmica**.
+    
+    ```{r}
+    atletas_idade_mediana <- atletas_sem_arte %>%
+                           group_by(esporte) %>% 
+                                summarize(
+                                          mediana = median(idade, na.rm = TRUE)
+                                          )
+    
+    menor_idade_mediana <-  atletas_idade_mediana %>% slice_min(mediana) %>% pull(esporte)
+    maior_idade_mediana <-  atletas_idade_mediana %>% slice_max(mediana) %>% pull(esporte)
+    
+    sprintf("%s é o esporte de menor idade(mediana).E %s é o esporte de maior idade(mediana)", menor_idade_mediana, maior_idade_mediana)
+    ```
+
+1. [Usando somente os atletas dos esportes com menor idade média e maior idade média (achados acima),]{.hl} gere dois histogramas das idades, por esporte, com classes de $5$ anos. Use `facet_wrap`.
+
+    ```{r}
+    atletas_sem_arte %>%
+                      filter(esporte==menor_idade_media | esporte==maior_idade_media) %>%
+                      filter(!is.na(idade)) %>%
+                      ggplot(aes(x = idade, fill=esporte))                  +
+                      geom_histogram(
+                                    color="black",
+                                    breaks=seq(10, 75, 5)
+                                    
+                                    ) +
+                      
+                      facet_wrap(~esporte) +
+                      scale_x_continuous(minor_breaks= seq(10, 75, 5),breaks=seq(10, 75, 5)) +
+                      
+                      labs(
+                      title = 'Idades dos atletas por esporte',
+                      x = 'Idade',
+                      y = 'Quantidade de atletas'
+                      ) + 
+                      theme_dark() +
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5))
+    
+    
+    ```
+
+1. Repita o item anterior, desta vez usando `facet_grid` em vez de `facet_wrap`, para gerar $4$ histogramas, cada um com um esporte e um sexo. Comente o resultado.
+
+    ```{r}
+    atletas_sem_arte %>%
+                      filter(esporte==menor_idade_media | esporte==maior_idade_media) %>%
+                      filter(!is.na(idade)) %>%
+                      ggplot(aes(x = idade, fill=sexo))                  +
+                      geom_histogram(
+                                    color="black",
+                                    breaks=seq(10, 75, 5)
+                                    ) +
+                      
+                      facet_grid(vars(esporte), vars(sexo))  +
+                      scale_x_continuous(minor_breaks= seq(10, 75, 5), breaks=seq(10, 75, 5)) +
+                      labs(
+                      title = 'Idades dos atletas por esporte e sexo',
+                      x = 'Idade',
+                      y = 'Quantidade de atletas')+ 
+                      theme_dark() +
+      
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5))
+    ```
+  
+    O hipismo possui maior variação de idades em comparação com a ginástica rítmica. No mesmo, as idades estão mais concentradas entre 25 e 35 anos. Para o sexo masculino, a maior quantidade de atletas tem idades entre 30 e 35. 
+    Quanto a ginástica rítmica, como não houve participação do sexo masculino, não há registros das idades. Já para o sexo feminino, temos que a faixa etária se concentra entre 15 e 20 anos e as ginastas mais velhas estão entre 25 e 30 anos.
+
+# *Boxplots*
+
+1. Gere *boxplots* lado a lado, um *boxplot* por ano, para as alturas de todos os atletas. Comente o resultado.
+
+    ```{r}
+    # atletas %>% arrange((altura))
+      atletas_altura <- atletas_sem_arte %>%
+                ggplot(aes( y = altura,x =factor( ano))) +
+                geom_boxplot(na.rm=TRUE) +
+                scale_y_continuous(minor_breaks= seq(0,235,1), breaks = seq(0,235,5)) +
+                theme_dark() + 
+                labs(title = 'Altura dos atletas por ano',
+                     x = "Ano",
+                     y = "Alturas")+ 
+                theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5))
+    
+    atletas_altura
+    
+    ```
+    
+    
+    Nas Olimpíadas de 1956, 1960 e 1964	25% dos participantes possuem  167 ou menos de altura.
+    Nas Olimpíadas de 1952, 1968 a 1976, 1984, 1988, 1996 a  2016 25 % dos participantes mediam igual ou abaixo de 168.
+    Nas Olimpíadas de 1980 e 1992 25 % dos participantes mediam 169 ou menos.
+    E nas Olimpíadas de 1948 25 % dos participantes mediam 171 ou menos.
+    
+    Nas Olimpíadas de 1960 50% dos atletas tinham 173 ou mais de altura e 50% tinha 173 ou menos. 
+    Nas Olimpíadas de 1952, 1964 e 1968 50% dos atletas tinham 174 ou mais de altura e 50% tinha 174 ou menos. 
+    Nas Olimpíadas de 1956, 1972, 1976, 1984 e 2016 50% dos atletas tinham 175 ou mais de altura e 50% tinha 175 ou menos. 
+    E nas Olimpíadas de 1948, 1980 e de 1988 a 2012,  50% dos atletas tinham 176 ou mais de altura e 50% tinha 176 ou menos.
+    
+    A partir de 1968 a distribuição dos 50% dos valores acima e abaixo da mediana aparentam valores próximos, porém todos os anos apresentaram outliers.
+    
+    Além disso, em 12 dos anos indicados, 75% dos participantes tinham pelo menos 168 de altura.
+
+1. Repita o item anterior, facetando por sexo. Use `coord_flip`. Comente os resultados.
+
+    ```{r}
+      atletas_altura_por_sexo <- atletas_sem_arte %>% filter(!is.na(altura)) %>%
+                ggplot(aes( y = altura,x =factor( ano), fill=sexo)) +
+                geom_boxplot() +
+                scale_y_continuous(minor_breaks= seq(0,235,1), breaks = seq(0,235,15)) +
+                theme_dark() + 
+                labs(title = 'Altura dos atletas por ano e sexo',
+                     x = "Ano",
+                     y = "Alturas")+ 
+                theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5)) +facet_wrap(~sexo)+coord_flip()
+     atletas_altura_por_sexo
+    ```
+  
+    Comparando as duas facetas, nota-se que os homens em todos os anos de Olimpíada possuem mediana superior a das mulheres.Em 1948, por exemplo, 50% das mulheres mediam pelo menos 169 enquanto 50% dos homens mediam pelo menos 178.
+    Somente a partir do ano de 1980 que participou das Olimpíadas pelo menos uma atleta com mais de 195, enquanto desde de 1948 já tiveram homens acima desse valor.
+    
+1. Gere dois *boxplots* lado a lado, um para os brasileiros (BRA), um para os holandeses (NED), para as alturas dos atletas. Comente o resultado.
+
+    ```{r}
+    atletas_sem_arte %>% filter(!is.na(altura)) %>%
+                filter(pais=="BRA" | pais=="NED") %>%
+                ggplot(aes(y=altura,fill=pais)) +
+                geom_boxplot() +
+                scale_x_continuous(breaks = NULL) +
+                scale_y_continuous(minor_breaks= seq(0,235,1),breaks = seq(0,240,20)) +
+                theme_dark() +
+                theme( panel.spacing = unit(0.5, "cm"),
+                       plot.title = element_text (hjust = 0.5))+
+                labs(title = 'Altura dos atletas brasileiros e holandeses por sexo', fill='País') + 
+                labs(title = 'Altura dos atletas brasileiros e holandeses', fill='País') +
+                coord_flip()
+    ```
+    
+    Nota-se que 50% dos atletas holandeses medem pelo menos 180, enquanto 50% dos atletas brasileiros medem pelo menos 178. Além disso, 25% dos atletas holandeses são mais altos que 75% dos atletas brasileiros.
+    
+1. Repita o item anterior, facetando por sexo. Comente os resultados.
+
+    ```{r}
+    
+    atletas_sem_arte %>% filter(!is.na(altura)) %>%
+                filter(pais=="BRA" | pais=="NED") %>%
+                ggplot(aes(y=altura,fill=pais)) +
+                geom_boxplot() +
+                scale_x_continuous(breaks = NULL) +
+                scale_y_continuous(breaks = seq(0,240,20)) +
+                facet_wrap(~sexo) +
+                theme_dark() +
+                theme( panel.spacing = unit(0.5, "cm"),
+                       plot.title = element_text (hjust = 0.5))+
+                labs(title = 'Altura dos atletas brasileiros e holandeses por sexo', fill='País') +
+                coord_flip()
+    ```
+
+
+    Observa-se que 25% das atletas holandesas são mais altas que 75% das atletas brasileira, ocorrendo o mesmo para os homens. A menor altura das holandese é 145 e das brasileiras próximo de 130. Já para os homens temos que a menor altura dos holandeses participantes é abaixo de 145 e dos brasileiro acima de 145.
+
+# Gráficos de barras
+
+1. Gere um gráfico de barras [horizontais]{.hl} com as quantidades de medalhas de ouro dos $10$ países que ganharam mais medalhas de ouro [nas olimpíadas de $2016$]{.hl}. Coloque as barras em ordem decrescente.
+
+
+    ```{r}
+    # países que participaram das Olimpíadas de 2016
+    atletas_2016 <- atletas_sem_arte %>% filter(ano==2016 & medalha=='Gold')
+    
+    # os 10 países que mais ganharam medalhas de ouro em 2016
+    paises_medalhas_de_ouro <-  atletas_2016 %>% count(pais) %>% arrange(desc(n)) %>% head(10)
+    
+    
+    paises_medalhas_de_ouro %>%
+                      ggplot(aes(y = reorder(pais, n), x = n, fill=pais))         +
+                      geom_bar(stat='identity')+
+      
+                      labs(
+                      title = 'Quantidade de medalhas de ouro por país em 2016',
+                      y = 'País',
+                      x = 'Quantidade de medalhas de ouro',
+                      fill= 'Países')   +
+      
+                      theme_dark() +
+      
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5),
+                             axis.text.y = element_blank(),
+                             axis.ticks.y = element_blank())
+    ```
+
+1. Gere um gráfico de barras para as quantidades totais de medalhas do Brasil, por ano. No eixo $x$, coloque rótulos para [todos]{.hl} os anos de Olimpíada desde $1948$. Para os rótulos ficarem legíveis, use `coord_flip`.
+
+    ```{r}
+    # Brasil nas Olimpíadas de 2016 em que ganhou medalhas
+    medalhas_Brasil <- atletas_sem_arte %>% filter(pais=='BRA' & !is.na(medalha))
+    
+    
+    medalhas_por_ano_BR <- medalhas_Brasil %>% 
+                      ggplot(aes(x = ano))                 +
+                      geom_bar(fill='red')+
+                      scale_x_continuous(breaks=seq(1948, 2016, 4)) +
+      
+                      labs(
+                      title = 'Quantidade de medalhas do Brasil por ano',
+                      y = 'Quantidade de medalhas', 
+                      x = 'Ano')   +
+                      theme_dark() +
+      
+                      theme( panel.spacing = unit(0.5, "cm"),
+                             plot.title = element_text (hjust = 0.5)) +
+      
+                      coord_flip()
+    medalhas_por_ano_BR
+    
+    
+    ```
+    
+
+1. Repita o item anterior, com duas barras lado a lado por ano, uma para cada sexo. O que você nota de estranho no resultado? 
+
+    ```{r}
+    medalhas_por_ano_BR +
+                      facet_wrap(~sexo)+
+                      scale_y_continuous(breaks=seq(0, 43, 5))
+    
+    
+    ```
+    
+    Nota-se que antes de **1996**, nenhuma atleta brasileira ganhou medalhas na Olimpíadas.   
+    
+::: {.rmdimportant latex=1}
+
+[**DESAFIO:**]{.hl} Qual foi o primeiro ano em que cada país teve uma atleta do sexo feminino ganhando uma medalha? Construa um *data frame*. O resultado terá $98$ linhas.
+
+    ```{r}
+    # filtrar todas as atletas mulheres
+    atletas_mulheres <- atletas %>% filter(sexo=='F')
+    
+    # agrupar por país e ano
+    atletas_mulheres <- atletas_mulheres %>% 
+                        group_by(pais, ano) %>% 
+                        summarise(medalhas = sum(!is.na(medalha)))
+    
+    # descartas os anos em que ateltas do sexo feminino não ganharam medalhas
+    atletas_mulheres <- atletas_mulheres %>% filter(medalhas != 0)
+    
+    # selecionar o primeiro ano em que cada país teve uma atleta do sexo feminino ganhando uma medalha
+    atletas_mulheres_primeira_medalha <- atletas_mulheres %>% slice_min(ano)
+    
+    atletas_mulheres_primeira_medalha
+    ```
+
+
+:::
+
+
+# Gráficos de linha
+
+1. Faça um gráfico de linha com os totais de atletas que o Brasil enviou a cada Olimpíada. Sobreponha pontos à linha. No eixo $x$, coloque rótulos para [todos]{.hl} os anos de Olimpíada desde $1948$. Para os rótulos ficarem legíveis, gire-os em $45$ graus.
+
+    ```{r}
+    # filtrando somente o Brasil
+    atletas_Brasil <-  atletas_sem_arte %>% filter(pais == 'BRA') %>% distinct(nome, .keep_all = TRUE)
+    
+    # criando nova coluna contendo o total de atletas
+    atletas_Brasil <- atletas_Brasil %>% 
+                            group_by(ano) %>%
+                            summarize(
+                              qtd.atletas = n()
+                            )
+    
+    graf_total_de_atletas_BR <- atletas_Brasil %>%
+                  ggplot(aes(x = ano, y = qtd.atletas)) +
+                  geom_line()  +
+                  geom_point(size=2.5) + 
+                  
+                  scale_x_continuous(breaks=seq(1948, 2016, 4))           + 
+                  scale_y_continuous(breaks=seq(0, 533, 41))              +
+                  
+                  labs(
+                       title = 'Total de atletas brasileiros por ano',
+                       x = " Ano",
+                       y = "Total de atleta"
+                       )                                                  +
+                  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                        panel.spacing = unit(0.5, "cm"),
+                        plot.title = element_text (hjust = 0.5))
+    
+    graf_total_de_atletas_BR
+    ```
+
+
+1. Acrescente ao gráfico do item anterior uma linha de outra cor, também com pontos, com as quantidades de medalhas obtidas pelo Brasil a cada ano. As cores das linhas devem aparecer na legenda, com as identificações "atletas" e "medalhas".
+
+    ```{r}
+    medalhas_Brasil <-  atletas %>% 
+                        group_by(ano) %>%
+                        summarise(
+                        qntd.medalhas = sum(!is.na(medalha))
+                        )
+    
+    y_total_de_medalhas_BR <-  medalhas_Brasil %>% pull(qntd.medalhas)
+    y_total_de_atletas_BR  <-  atletas_Brasil  %>% pull(qtd.atletas)                            
+    
+    
+    medalhas_Brasil %>%
+                  ggplot(aes(x = ano)) +
+                  geom_line(aes(y = y_total_de_medalhas_BR, color="darkblue"))  +
+      
+                  geom_line(aes(y = y_total_de_atletas_BR, color="darkorange3"))+
+      
+                  geom_point(size=2,aes(y = y_total_de_medalhas_BR, color="darkblue"))+
+                  geom_point(size=2,aes(y = y_total_de_atletas_BR, color="darkorange3")) +
+      
+                  
+                  scale_x_continuous(breaks=seq(1948, 2016, 4))           + 
+                  
+                  labs(
+                       title = 'Total de atletas brasileiros e medalhas obtidas por ano',
+                       x = " Ano",
+                       y = "Total de atleta/medalhas",
+                       fill="Cores"
+                       )                                                  +
+      
+                  theme( axis.text.x = element_text(angle = 45, hjust = 1),
+                        panel.spacing = unit(0.5, "cm"),
+                        plot.title = element_text (hjust = 0.5))+
+      
+                  scale_color_manual(labels = c("medalhas", "atletas"), values = c("darkblue","darkorange3"),"Cores") 
+    
+    
+    ```
+
+1. Calcule, para cada ano, o percentual de medalhas ganhas em relação ao total de participações de atletas brasileiros. Gere um gráfico de linha com pontos sobrepostos. No eixo $x$, coloque rótulos para [todas]{.hl} os anos de Olimpíada desde $1948$. Para os rótulos ficarem legíveis, gire-os em $45$ graus. Use o pacote `scales` para rotular o eixo $y$ com percentagens.
+
+    ```{r}
+    medalhas_Brasil <-  atletas %>% 
+                        group_by(ano) %>%
+                        summarise(
+                        qntd.medalhas = sum(!is.na(medalha))
+                        )
+    
+    y_total_de_medalhas_BR <-  medalhas_Brasil %>% pull(qntd.medalhas)
+    y_total_de_atletas_BR  <-  atletas_Brasil  %>% pull(qtd.atletas)                            
+    
+    y_percentual <-y_total_de_atletas_BR/ y_total_de_medalhas_BR
+    
+    medalhas_Brasil %>%
+                  ggplot(aes(x = ano, y = y_percentual)) +
+                  geom_line() +
+                  geom_point(size=2) +
+                  scale_x_continuous(breaks=seq(1948, 2016, 4))           +
+                  scale_y_continuous(labels = scales::percent) +
+                  
+                  labs(x = " Ano",
+                       y= NULL,
+                       title =  "Percentual de medalhas ganhas em relação ao total de atletas por ano",
+                       fill="Cores"
+                       )                                                  +
+      
+                  theme( axis.text.x = element_text(angle = 45, hjust = 1),
+                        panel.spacing = unit(0.5, "cm"),
+                        plot.title = element_text (hjust = 0.5))
+    
+    ```
